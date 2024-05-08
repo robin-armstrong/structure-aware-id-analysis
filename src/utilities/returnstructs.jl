@@ -34,24 +34,24 @@ end
 Return type for low-rank methods that compute interpolative decompositions. The vector `skel` contains the indices of the skeleton columns chosen used for the decomposition, while `C` and `R` are the factors of the decomposition.
 """
 struct SkeletalDecomp
-	skel::Vector
+	p::Vector
 	C::Matrix
-	R::Matrix
+	X::Matrix
 end
 
-Base.iterate(F::SkeletalDecomp) = (F.skel, Val(:C))
-Base.iterate(F::SkeletalDecomp, ::Val{:C}) = (F.C, Val(:R))
-Base.iterate(F::SkeletalDecomp, ::Val{:R}) = (F.R, Val(:done))
+Base.iterate(F::SkeletalDecomp) = (F.p, Val(:C))
+Base.iterate(F::SkeletalDecomp, ::Val{:C}) = (F.C, Val(:X))
+Base.iterate(F::SkeletalDecomp, ::Val{:X}) = (F.X, Val(:done))
 Base.iterate(F::SkeletalDecomp, ::Val{:done}) = nothing
 
 function Base.show(io::IO, mime::MIME{Symbol("text/plain")}, F::SkeletalDecomp)
 	summary(io, F); println(io)
 	println(io, "skeleton column indices:")
-	show(io, mime, F.skel)
+	show(io, mime, F.p)
 	println(io, "\nskeleton columns:")
 	show(io, mime, F.C)
 	println(io, "\ninterpolation matrix:")
-	show(io, mime, F.R)
+	show(io, mime, F.X)
 end
 
 # struct, iterator, and show method for orthonormalized skeletal decompositions
@@ -62,22 +62,22 @@ end
 Return type for low-rank methods that compute interpolative decompositions with orthonormalized skeleton columns. The vector `skel` contains the indices of the skeleton columns chosen used for the decomposition, while `C` and `R` are the factors of the decomposition.
 """
 struct OrthoSkeletalDecomp
-	skel::Vector
-	C::Matrix
-	R::Matrix
+	p::Vector
+	Q::Matrix
+	X::Matrix
 end
 
-Base.iterate(F::OrthoSkeletalDecomp) = (F.skel, Val(:C))
-Base.iterate(F::OrthoSkeletalDecomp, ::Val{:C}) = (F.C, Val(:R))
-Base.iterate(F::OrthoSkeletalDecomp, ::Val{:R}) = (F.R, Val(:done))
+Base.iterate(F::OrthoSkeletalDecomp) = (F.p, Val(:Q))
+Base.iterate(F::OrthoSkeletalDecomp, ::Val{:Q}) = (F.Q, Val(:X))
+Base.iterate(F::OrthoSkeletalDecomp, ::Val{:X}) = (F.X, Val(:done))
 Base.iterate(F::OrthoSkeletalDecomp, ::Val{:done}) = nothing
 
 function Base.show(io::IO, mime::MIME{Symbol("text/plain")}, F::OrthoSkeletalDecomp)
 	summary(io, F); println(io)
 	println(io, "skeleton column indices:")
-	show(io, mime, F.skel)
+	show(io, mime, F.p)
 	println(io, "\northonormalized skeleton columns:")
-	show(io, mime, F.C)
+	show(io, mime, F.Q)
 	println(io, "\ninterpolation matrix:")
-	show(io, mime, F.R)
+	show(io, mime, F.X)
 end

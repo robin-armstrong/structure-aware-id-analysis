@@ -42,8 +42,7 @@ end
 function rsvd(A::Matrix, k::Integer ; 
 				oversamp::Integer = 0,
 				power::Integer = 0,
-				minimal::Bool = false,
-				sk::Sketch = GaussianSketch())
+				minimal::Bool = false)
 	
 	return rsvd(Random.default_rng(), A, k, oversamp = oversamp, power = power, minimal = minimal)
 end

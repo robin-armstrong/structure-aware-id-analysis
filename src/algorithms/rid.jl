@@ -6,7 +6,7 @@ include("../utilities/returnstructs.jl")
 """
 	rid([rng], A, k; oversamp = 0, minimal = false, orthonormal = true)
 
-Compute an approximate factorization `A = C*R` where `C` consists of `k` skeleton columns from `A`. Choose columns using Businger-Golub QRCP on a sketch of `A` computed using oversampling `oversamp`. If `minimal == true` then only the indices of the skeleton columns are computed. If `minimal == false` then `C` and `R` are returned along with the indices of the skeleton columns. If `orthonormal == true` then the columns of `C` are orthonormalized; otherwise its columns are the corresponding columns of `A` unmodified. All internal randomness is drawn from `rng`.
+Compute an approximate factorization `A = C*X` where `C` consists of `k` skeleton columns from `A`. Choose columns using Businger-Golub QRCP on a sketch of `A` computed using oversampling `oversamp`. If `minimal == true` then only the indices of the skeleton columns are computed. If `minimal == false` then `C` and `X` are returned along with the indices of the skeleton columns. If `orthonormal == true` then the columns of `C` are orthonormalized; otherwise its columns are the corresponding columns of `A` unmodified. All internal randomness is drawn from `rng`.
 
 NOTE: running `rid` with `orthonormal = false` may be numerically unstable when `k` exceeds the numerical rank of `A`.
 """
@@ -37,7 +37,7 @@ function rid(rng::AbstractRNG, A::Matrix, k::Integer ;
 	return orthonormal ? OrthoSkeletalDecomp(perm, C, R) : SkeletalDecomp(perm, C, R)
 end
 
-function rqrcp(A::Matrix, k::Integer ;
+function rid(A::Matrix, k::Integer ;
 				oversamp::Integer = 0,
 				minimal::Bool = false,
 				orthonormal::Bool = true)
