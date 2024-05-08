@@ -1,4 +1,5 @@
 using LinearAlgebra
+using Distributions
 using StatsBase
 using Random
 using PyPlot
@@ -121,10 +122,12 @@ if(!plot_only)
         println("\ncalculating approximation error statistics...")
         
         means  = Dict()
+        stds   = Dict()
         quants = Dict()
 
         for alg in algnames
             means[alg]  = vec(mean(data[alg], dims = 2))
+            stds[alg]   = vec(std(data[alg], dims = 2))
             quants[alg] = zeros(length(krange), 2)
 
             for i = 1:length(krange)
@@ -133,7 +136,7 @@ if(!plot_only)
             end
         end
 
-        @save destination*"_data.jld2" krange kernel_svd data means quants
+        @save destination*"_data.jld2" krange numtrials kernel_svd data means stds quants
     end
 
     run_kernel_example(destination, readme, rng, num_clusters, num_points, radius, noise, bandwidth, krange, numtrials, plot_only)
@@ -143,7 +146,7 @@ end
 ##################### PLOTTING #####################################
 ####################################################################
 
-@load destination*"_data.jld2" krange kernel_svd data means quants
+@load destination*"_data.jld2" krange numtrials kernel_svd data means stds quants
 
 kernel_norm = norm(kernel_svd.S)
 optimal     = [norm(kernel_svd.S[(k + 1):end]) for k in krange]
@@ -151,7 +154,11 @@ optimal     = [norm(kernel_svd.S[(k + 1):end]) for k in krange]
 ioff()
 fig, (norm_rel, opt_rel) = subplots(1, 2, figsize = (10, 4))
 
-mfreq = 5
+mfreq      = 5
+errbar     = "confidence"   # either "confidence" or "quantile"
+confidence = .95
+
+alpha = quantile(Normal(0, 1), 1 - .5*(1 - confidence))
 
 norm_rel.set_xlabel(L"Approximation Rank ($k$)")
 norm_rel.set_ylabel("Relative Frobenius Error")
@@ -163,10 +170,17 @@ opt_rel.set_ylim([1., 3.])
 
 for alg in algnames
     norm_rel.plot(krange, means[alg]/kernel_norm, color = algcolors[alg], marker = algmarkers[alg], markevery = mfreq, markerfacecolor = "none", label = alglabels[alg])
-    norm_rel.fill_between(krange, quants[alg][:, 1]/kernel_norm, quants[alg][:, 2]/kernel_norm, color = algcolors[alg], alpha = .2)
-
     opt_rel.plot(krange, means[alg]./optimal, color = algcolors[alg], marker = algmarkers[alg], markevery = mfreq, markerfacecolor = "none")
-    opt_rel.fill_between(krange, quants[alg][:, 1]./optimal, quants[alg][:, 2]./optimal, color = algcolors[alg], alpha = .2)
+
+    if(errbar == "quantile")
+        norm_rel.fill_between(krange, quants[alg][:, 1]/kernel_norm, quants[alg][:, 2]/kernel_norm, color = algcolors[alg], alpha = .2)
+        opt_rel.fill_between(krange, quants[alg][:, 1]./optimal, quants[alg][:, 2]./optimal, color = algcolors[alg], alpha = .2)
+    elseif(errbar == "confidence")
+        norm_rel.fill_between(krange, (means[alg] .+ alpha*stds[alg]/sqrt(numtrials))/kernel_norm, (means[alg] .- alpha*stds[alg]/sqrt(numtrials))/kernel_norm, color = algcolors[alg], alpha = .2)
+        opt_rel.fill_between(krange, (means[alg] .+ alpha*stds[alg]/sqrt(numtrials))./optimal, (means[alg] .- alpha*stds[alg]/sqrt(numtrials))./optimal, color = algcolors[alg], alpha = .2)
+    else
+        throw(ArgumentError("unrecognized error bar type, '"*errbar*"'"))
+    end
 end
 
 norm_rel.plot(krange, optimal/kernel_norm, color = "black", linestyle = "dashed", label = "Optimal")
