@@ -26,7 +26,7 @@ function levg(rng::AbstractRNG, A::Matrix, k::Integer ;
 		throw(ArgumentError("all leverage scores must be between 0 and 1"))
 	end
 	
-	lscores = lscores_provided ? leverage_scores : Vector{Float64}(undef, size(A, 2))
+	lscores = lscores_provided ? leverage_scores : zeros(size(A, 2))
 	
 	if(!lscores_provided)
 		Vt = svd(A).Vt[1:k, :]
@@ -52,7 +52,8 @@ end
 function levg(A::Matrix, k::Integer ;
 				oversamp::Integer = 0,
 				minimal::Bool = false,
-				orthonormal::Bool = true)
+				orthonormal::Bool = true,
+				leverage_scores::Union{Vector{T}, Nothing} = nothing) where T <: Real
 	
-	return levg(Random.default_rng(), A, k, oversamp = oversamp, minimal = minimal, orthonormal = orthonormal)
+	return levg(Random.default_rng(), A, k, oversamp = oversamp, minimal = minimal, orthonormal = orthonormal, leverage_scores = leverage_scores)
 end
