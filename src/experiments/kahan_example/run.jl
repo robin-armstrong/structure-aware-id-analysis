@@ -23,6 +23,7 @@ rng       = MersenneTwister(1)      # random souce, set for reproducibility
 n         = 100                     # dimension of Kahan blocks
 blocks    = 1                       # number of Kahan blocks
 alpha     = .9                      # parameterizes the Kahan blocks
+pert      = 1e3                     # controls a diagonal perturbation on the test matrix
 krange    = 1:5:100                 # range of approximation ranks to test
 numtrials = 100                     # trials per approximation rank
 
@@ -38,13 +39,13 @@ if(!plot_only)
         flush(stdout)
     end
 
-    function kahan(n, alpha)
+    function kahan(n, alpha, pert)
         beta = sqrt(max(1. - alpha^2, 0.))
         K    = triu(-beta*ones(n, n))
         d    = 1
         
         for i = 1:n
-            K[i, i]  = 1.
+            K[i, i]  = 1. + pert*eps()*(n - i + 1)
             K[i, :] *= d
             d       *= alpha
         end
@@ -52,12 +53,13 @@ if(!plot_only)
         return K
     end
     
-    function run_kahan_example(destination, readme, rng, n, blocks, alpha, krange, numtrials, plot_only)
+    function run_kahan_example(destination, readme, rng, n, blocks, alpha, pert, krange, numtrials, plot_only)
         logstr  = readme*"\n\n"
         logstr *= "rng       = "*string(rng)*"\n"
         logstr *= "n         = "*string(n)*"\n"
         logstr *= "blocks    = "*string(blocks)*"\n"
         logstr *= "alpha     = "*string(alpha)*"\n"
+        logstr *= "pert      = "*string(pert)*"\n"
         logstr *= "krange    = "*string(krange)*"\n"
         logstr *= "numtrials = "*string(numtrials)*"\n"
 
@@ -77,7 +79,7 @@ if(!plot_only)
             id1 = (b - 1)*n + 1
             id2 = b*n
 
-            K[id1:id2, id1:id2] = kahan(n, alpha)
+            K[id1:id2, id1:id2] = kahan(n, alpha, pert)
         end
 
         fprintln("computing SVD of test matrix...")
@@ -150,7 +152,7 @@ if(!plot_only)
         @save destination*"_data.jld2" krange numtrials block_kahan_svd data means stds quants
     end
 
-    run_kahan_example(destination, readme, rng, n, blocks, alpha, krange, numtrials, plot_only)
+    run_kahan_example(destination, readme, rng, n, blocks, alpha, pert, krange, numtrials, plot_only)
 end
 
 ####################################################################
