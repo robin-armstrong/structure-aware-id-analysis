@@ -4,6 +4,7 @@
 *.txt
 *.sub
 *.out
+src/plot_combinations
 clean.sh
 DS_Store
 
