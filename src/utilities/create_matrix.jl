@@ -61,7 +61,7 @@ Randomly generate a square matrix of dimension `dim` whose singular values decay
 
 where `P` is a permutation matrix, `H` is a normalized Hadamard matrix, and `orth` denotes orthogonalization via a polar decomposition. Factors `U`, `S`, and `Vt` of a singular value decomposition are returned. If `minimal = true` then only `S` is computed and returned. Randomness is drawn from `rng`.
 """
-function createMatrix(rng::AbstractRNG, dim::Int, spectrum::SpectrumObject; coher::Union{Real, Nothing} = nothing, minimal::Bool = false)
+function create_matrix(rng::AbstractRNG, dim::Int, spectrum::SpectrumObject; coher::Union{Real, Nothing} = nothing, minimal::Bool = false)
 	# checking compatibility of arguments
 	if(spectrum.decayRanges[end] > dim)
 		throw(ArgumentError("spectrum object has decay indices that exceed the matrix dimension"))
