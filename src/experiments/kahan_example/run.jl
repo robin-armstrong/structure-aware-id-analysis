@@ -91,7 +91,7 @@ if(!plot_only)
         stds   = Dict()
         quants = Dict()
 
-        for alg in algnames
+        for alg in ["dgeqp3", "levg", "rid", "rgks"]
             data[alg]   = zeros(length(krange), numtrials)
             means[alg]  = zeros(length(krange))
             stds[alg]   = zeros(length(krange))
@@ -117,21 +117,22 @@ if(!plot_only)
 
                 r1 = rgks(rng, K, k, oversamp = ceil(Int64, .1*k))
                 r2 = rid(rng, K, k, oversamp = ceil(Int64, .1*k))
-                r3 = rsvd(rng, K, k, oversamp = ceil(Int64, .1*k), power = 0)
-                r4 = rsvd(rng, K, k, oversamp = ceil(Int64, .1*k), power = 1)
-                r5 = levg(rng, K, k, oversamp = ceil(Int64, .1*k), leverage_scores = lscores)
+                r3 = levg(rng, K, k, oversamp = ceil(Int64, .1*k), leverage_scores = lscores)
+                r4 = qr(K, ColumnNorm())
 
                 # optimally reducing the levg approximation to rank k
 
-                U = svd(r5.X).U
-                Q = r5.Q*U[:, 1:k]
+                U = svd(r3.X).U
+                Q = r3.Q*U[:, 1:k]
                 X = Q'*K
+
+                # finding the approximation subspace used by DGEQP3
+                W = r4.Q*Matrix{Float64}(I(n)[:, 1:k])
 
                 data["rgks"][i, t]    = norm(K - (r1.Q)*(r1.X))
                 data["rid"][i, t]     = norm(K - (r2.Q)*(r2.X))
-                data["rsvd_q0"][i, t] = norm(K - (r3.U)*Diagonal(r3.S)*(r3.Vt))
-                data["rsvd_q1"][i, t] = norm(K - (r4.U)*Diagonal(r4.S)*(r4.Vt))
                 data["levg"][i, t]    = norm(K - Q*X)
+                data["dgeqp3"][i, t]  = norm(K - W*(W'*K))
             end
 
             @save destination*"_data.jld2" krange numtrials block_kahan_svd data means stds quants
@@ -139,7 +140,7 @@ if(!plot_only)
 
         fprintln("\ncalculating approximation error statistics...")
         
-        for alg in algnames
+        for alg in ["dgeqp3", "levg", "rid", "rgks"]
             means[alg]  = vec(mean(data[alg], dims = 2))
             stds[alg]   = vec(std(data[alg], dims = 2))
 
@@ -181,7 +182,7 @@ opt_rel.set_xlabel(L"Approximation Rank ($k$)")
 opt_rel.set_ylabel("Frobenius Error Suboptimality")
 opt_rel.set_ylim([1., 3.])
 
-for alg in algnames
+for alg in ["dgeqp3", "levg", "rid", "rgks"]
     norm_rel.plot(krange, means[alg]/matrix_norm, color = algcolors[alg], marker = algmarkers[alg], markevery = mfreq, markerfacecolor = "none", label = alglabels[alg])
     opt_rel.plot(krange, means[alg]./optimal, color = algcolors[alg], marker = algmarkers[alg], markevery = mfreq, markerfacecolor = "none")
 

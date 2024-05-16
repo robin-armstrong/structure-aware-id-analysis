@@ -27,7 +27,7 @@ krange     = 1:250
 coherences = [.2, .5]
 numtrials  = 100
 
-plot_only = true
+plot_only = false
 
 ####################################################################
 ##################### DATA GENERATION ##############################
@@ -78,7 +78,7 @@ if(!plot_only)
         stds   = Dict()
         quants = Dict()
         
-        for alg in algnames
+        for alg in ["rsvd_q0", "rid", "rgks"]
             err_data[alg]   = zeros(2, length(krange), numtrials)
             means[alg]  = zeros(2, length(krange))
             stds[alg]   = zeros(2, length(krange))
@@ -112,25 +112,19 @@ if(!plot_only)
 
                     U_appx, S_appx, Vt_appx = rsvd(rng, A[matrix_id, :, :], k, oversamp = ov, power = 0)
                     err_data["rsvd_q0"][matrix_id, i, t] = norm(A[matrix_id, :, :] - U_appx*Diagonal(S_appx)*Vt_appx)
-
-                    U_appx, S_appx, Vt_appx = rsvd(rng, A[matrix_id, :, :], k, oversamp = ov, power = 1)
-                    err_data["rsvd_q1"][matrix_id, i, t] = norm(A[matrix_id, :, :] - U_appx*Diagonal(S_appx)*Vt_appx)
                     
                     _, Q, X = rid(rng, A[matrix_id, :, :], k, oversamp = ov)
                     err_data["rid"][matrix_id, i, t] = norm(A[matrix_id, :, :] - Q*X)
 
                     _, Q, X = rgks(rng, A[matrix_id, :, :], k, oversamp = ov)
                     err_data["rgks"][matrix_id, i, t] = norm(A[matrix_id, :, :] - Q*X)
-
-                    _, Q, X = levg(rng, A[matrix_id, :, :], k, oversamp = ov, leverage_scores = levg_scores)
-                    err_data["levg"][matrix_id, i, t] = norm(A[matrix_id, :, :] - Q*X)
                 end
 
                 @save destination*"_data.jld2" krange numtrials U S Vt coher_data err_data means stds quants
             end
         end
 
-        for alg in algnames
+        for alg in ["rsvd_q0", "rid", "rgks"]
             for matrix_id = 1:2
                 means[alg][matrix_id, :] = vec(mean(err_data[alg][matrix_id, :, :], dims = 2))
                 stds[alg][matrix_id, :] = vec(std(err_data[alg][matrix_id, :, :], dims = 2))
@@ -185,7 +179,7 @@ for matrix_id = 1:2
     err[matrix_id].set_yscale("log")
     err[matrix_id].plot(krange, optimal[matrix_id, :]/matrix_norm[matrix_id], color = "black", linestyle = "dashed", label = "Optimal")
 
-    for alg in algnames
+    for alg in ["rsvd_q0", "rid", "rgks"]
         (alg == "rsvd_q1") && continue
         (alg == "levg") && continue
 
