@@ -6,5 +6,5 @@
 *.out
 src/plot_combinations
 clean.sh
-DS_Store
+.DS_Store
 
