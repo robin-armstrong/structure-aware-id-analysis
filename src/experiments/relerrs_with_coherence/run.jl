@@ -27,7 +27,7 @@ krange     = 1:250
 coherences = [.2, .5]
 numtrials  = 100
 
-plot_only = false
+plot_only = true
 
 ####################################################################
 ##################### DATA GENERATION ##############################
@@ -186,6 +186,9 @@ for matrix_id = 1:2
     err[matrix_id].plot(krange, optimal[matrix_id, :]/matrix_norm[matrix_id], color = "black", linestyle = "dashed", label = "Optimal")
 
     for alg in algnames
+        (alg == "rsvd_q1") && continue
+        (alg == "levg") && continue
+
         err[matrix_id].plot(krange, means[alg][matrix_id, :]/matrix_norm[matrix_id], color = algcolors[alg], marker = algmarkers[alg], markevery = mfreq, markerfacecolor = "none", label = alglabels[alg])
 
         if(errbar == "confidence")
