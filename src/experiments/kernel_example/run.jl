@@ -31,7 +31,7 @@ krange       = 1:2:99               # range of approximation ranks to test
 k_anim       = 80
 numtrials    = 50                   # trials per approximation rank
 
-plot_only = true
+plot_only = false
 
 ####################################################################
 ##################### DATA GENERATION ##############################
@@ -241,23 +241,24 @@ Plots.xlims!(rid_cloud, minimum(points[1, :]), maximum(points[1, :]))
 Plots.xlims!(rid_cols, 0., 1.1*maximum(l_scores))
 Plots.xlims!(rgks_cols, 0., 1.1*maximum(l_scores))
 Plots.ylabel!(rid_cols, "Column Norm")
+Plots.ylabel!(rgks_cols, "Column Norm")
 Plots.ylims!(rgks_cloud, minimum(points[2, :]), maximum(points[2, :]))
 Plots.ylims!(rid_cloud, minimum(points[2, :]), maximum(points[2, :]))
 Plots.ylims!(rid_cols, 0., 1.1*maximum(colnorms))
 Plots.ylims!(rgks_cols, 0., 1.1*maximum(colnorms))
 
-tiles = Plots.plot(rid_cloud, rgks_cloud, rid_cols, rgks_cols, layout = (2, 2))
-Plots.scatter!(tiles[1], points[1, :], points[2, :], markercolor = :gray, markersize = 2, markeralpha = .1, legend = false)
-Plots.scatter!(tiles[2], points[1, :], points[2, :], markercolor = :gray, markersize = 2, markeralpha = .1, legend = false)
-Plots.scatter!(tiles[3], l_scores, colnorms, markercolor = :gray, markersize = 2, markeralpha = .1, legend = false)
-Plots.scatter!(tiles[4], l_scores, colnorms, markercolor = :gray, markersize = 2, markeralpha = .1, legend = false)
+tiles = Plots.plot(rid_cloud, rgks_cloud, rid_cols, rgks_cols, layout = (2, 2), size = (1000, 1000))
+Plots.scatter!(tiles[1], points[1, :], points[2, :], markercolor = :gray, markersize = 4, markeralpha = .1, legend = false)
+Plots.scatter!(tiles[2], points[1, :], points[2, :], markercolor = :gray, markersize = 4, markeralpha = .1, legend = false)
+Plots.scatter!(tiles[3], l_scores, colnorms, markercolor = :gray, markersize = 4, markeralpha = .1, legend = false)
+Plots.scatter!(tiles[4], l_scores, colnorms, markercolor = :gray, markersize = 4, markeralpha = .1, legend = false)
 
 anim = Plots.@animate for j = 1:k_anim
     fprintln("  frame "*string(j)*" of "*string(k_anim)*"...")
-    Plots.scatter!(tiles[1], points[1, p_rid[j]], points[1, p_rid[j]], markercolor = :green, markersize = 4, legend = false)
-    Plots.scatter!(tiles[2], points[1, p_rgks[j]], points[1, p_rgks[j]], markercolor = :red, markersize = 4, legend = false)
-    Plots.scatter!(tiles[3], l_scores[p_rid[j]], colnorms[p_rid[j]], markercolor = :green, markersize = 4, legend = false)
-    Plots.scatter!(tiles[4], l_scores[p_rgks[j]], colnorms[p_rgks[j]], markercolor = :red, markersize = 4, legend = false)
+    Plots.scatter!(tiles[1], [points[1, p_rid[j]]], [points[2, p_rid[j]]], markercolor = :lightgreen, markersize = 6, legend = false)
+    Plots.scatter!(tiles[2], [points[1, p_rgks[j]]], [points[2, p_rgks[j]]], markercolor = :red, markersize = 6, legend = false)
+    Plots.scatter!(tiles[3], [l_scores[p_rid[j]]], [colnorms[p_rid[j]]], markercolor = :lightgreen, markersize = 6, legend = false)
+    Plots.scatter!(tiles[4], [l_scores[p_rgks[j]]], [colnorms[p_rgks[j]]], markercolor = :red, markersize = 6, legend = false)
 end
 
-Plots.fig(anim, destination*"_animation.gif", fps = 3)
+Plots.gif(anim, destination*"_animation.gif", fps = 3)
