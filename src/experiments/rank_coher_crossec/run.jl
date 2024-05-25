@@ -28,7 +28,7 @@ sigma_start  = 100.
 sigma_end    = 1.
 krange       = 1:5:300          # range of approximation ranks to test
 num_cohers   = 100
-k_cross      = 20
+k_cross      = 100
 c_cross      = .2               # a number between 0 and 1
 numtrials    = 100              # trials per approximation rank
 
@@ -38,12 +38,12 @@ plot_only = false
 ##################### DATA GENERATION ##############################
 ####################################################################
 
-if(!plot_only)
-    function fprintln(s)
-        println(s)
-        flush(stdout)
-    end
+function fprintln(s)
+    println(s)
+    flush(stdout)
+end
 
+if(!plot_only)
     function run_crossecs(destination, readme, rng, n, decay_Start, decay_end, sigma_start, sigma_end, krange, num_cohers, k_cross, c_cross, numtrials)
         logstr  = readme*"\n\n"
         logstr *= "rng         = "*string(rng)*"\n"
@@ -218,24 +218,27 @@ optimal       = [norm(S[(k + 1):end]) for k in krange]
 optimal_cross = norm(S[(k_cross + 1):end])
 
 mfreq      = 5
-errbar     = "confidence"   # either "confidence" or "quantile"
+errbar     = "quantile"   # either "confidence" or "quantile"
 confidence = .95
 
 alpha = quantile(Normal(0, 1), 1 - .5*(1 - confidence))
 
 ioff()
-fig, (vsrank_rel, vscoher, vsrank_opt, stablerank) = subplots(2, 2, figsize = (10, 10))
+fig, (vsrank_rel, vscoher, vsrank_opt, stablerank) = subplots(2, 2, figsize = (8, 8))
 
 vsrank_rel.set_xlabel(L"Approximation Rank ($k$)")
 vsrank_rel.set_ylabel("Relative Frobenius Error")
 vsrank_rel.set_yscale("log")
 stablerank.set_xlabel(L"Approximation Rank ($k$)")
-stablerank.set_ylabel(L"Residual Stable Rank ($r_k$)")
-stablerank.set_yscale("log")
+stablerank.set_ylabel(L"Log Stable Rank ($\log_{10}(r_k)$)")
+stablerank.set_ylim([1, 3.7])
 vsrank_opt.set_xlabel(L"Approximation Rank ($k$)")
 vsrank_opt.set_ylabel("Frobenius Error Suboptimality")
-vscoher.set_xlabel(L"Coherence ($c_k$)")
-vscoher.set_ylabel("Frobenius Error Suboptimality")
+vscoher.set_xlabel(L"Coherence ($c_{100}$)")
+vscoher.set_ylabel(L"Frobenius Suboptimality ($k = 100$)")
+
+vsrank_opt.set_yticks([1, 2])
+stablerank.set_yticks([1, 2, 3])
 
 for alg in ["levg", "rsvd_q0", "rgks"]
     vsrank_rel.plot(krange, means_vsrank[alg]/matrixnorm, color = algcolors[alg], marker = algmarkers[alg], markevery = mfreq, markerfacecolor = "none", label = alglabels[alg])
@@ -243,8 +246,8 @@ for alg in ["levg", "rsvd_q0", "rgks"]
     vscoher.plot(cohers, means_vscoher[alg]/optimal_cross, color = algcolors[alg], marker = algmarkers[alg], markevery = mfreq, markerfacecolor = "none")
 
     if(errbar == "quantile")
-        vsrank_rel.fill_between(krange, quants_vsrank[alg][:, 1]/matrixnorm, quants[alg][:, 2]/matrixnorm, color = algcolors[alg], alpha = .2)
-        vsrank_opt.fill_between(krange, quants_vsrank[alg][:, 1]./optimal, quants[alg][:, 2]./optimal, color = algcolors[alg], alpha = .2)
+        vsrank_rel.fill_between(krange, quants_vsrank[alg][:, 1]/matrixnorm, quants_vsrank[alg][:, 2]/matrixnorm, color = algcolors[alg], alpha = .2)
+        vsrank_opt.fill_between(krange, quants_vsrank[alg][:, 1]./optimal, quants_vsrank[alg][:, 2]./optimal, color = algcolors[alg], alpha = .2)
         vscoher.fill_between(cohers, quants_vscoher[alg][:, 1]/optimal_cross, quants_vscoher[alg][:, 2]/optimal_cross, color = algcolors[alg], alpha = .2)
     elseif(errbar == "confidence")
         vsrank_rel.fill_between(krange, (means_vsrank[alg] .+ alpha*stds_vsrank[alg]/sqrt(numtrials))/matrixnorm, (means_vsrank[alg] .- alpha*stds_vsrank[alg]/sqrt(numtrials))/matrixnorm, color = algcolors[alg], alpha = .2)
@@ -259,7 +262,7 @@ vsrank_rel.plot(krange, optimal/matrixnorm, color = "black", linestyle = "dashed
 vsrank_rel.legend()
 
 sr = [norm(S[(k + 1):end])^2/S[k + 1]^2 for k in krange]
-stablerank.plot(krange, sr, color = "black")
+stablerank.plot(krange, log10.(sr), color = "black")
 
 savefig(destination*"_plot.pdf", bbox_inches = "tight")
 close(fig)
