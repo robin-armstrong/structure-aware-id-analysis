@@ -27,7 +27,7 @@ krange     = 1:250
 coherences = [.2, .5]
 numtrials  = 100
 
-plot_only = false
+plot_only = true
 
 ####################################################################
 ##################### DATA GENERATION ##############################
@@ -168,7 +168,7 @@ alpha = quantile(Normal(0, 1), 1 - .5*(1 - confidence))
 
 for matrix_id = 1:2
     if(matrix_id == 1)
-        err[matrix_id].set_ylabel("Frobenius Error Suboptimality")
+        err[matrix_id].set_ylabel("Relative Frobenius Error")
         coher[matrix_id].set_ylabel(L"Coherence ($c_k$)")
     end
     
