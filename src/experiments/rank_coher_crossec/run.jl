@@ -6,7 +6,7 @@ using PyPlot
 using JLD2
 
 include("../../algorithms/rgks.jl")
-include("../../algorithms/rid.jl")
+include("../../algorithms/rcpqr.jl")
 include("../../algorithms/rsvd.jl")
 include("../../algorithms/levg.jl")
 include("../../utilities/plot_config.jl")

@@ -6,7 +6,7 @@ using PyPlot
 using JLD2
 
 include("../../algorithms/rgks.jl")
-include("../../algorithms/rid.jl")
+include("../../algorithms/rcpqr.jl")
 include("../../algorithms/rsvd.jl")
 include("../../algorithms/levg.jl")
 include("../../utilities/plot_config.jl")
@@ -78,7 +78,7 @@ if(!plot_only)
         stds   = Dict()
         quants = Dict()
 
-        for alg in ["dgeqp3", "levg", "rid", "rgks"]
+        for alg in ["dgeqp3", "levg", "rcpqr", "rgks"]
             data[alg]   = zeros(length(krange), numtrials)
             means[alg]  = zeros(length(krange))
             stds[alg]   = zeros(length(krange))
@@ -103,7 +103,7 @@ if(!plot_only)
                 end
 
                 r1 = rgks(rng, M, k, oversamp = ceil(Int64, .1*k))
-                r2 = rid(rng, M, k, oversamp = ceil(Int64, .1*k))
+                r2 = rcpqr(rng, M, k, oversamp = ceil(Int64, .1*k))
                 r3 = levg(rng, M, k, oversamp = ceil(Int64, .1*k), leverage_scores = lscores)
                 r4 = qr(M, ColumnNorm())
 
@@ -117,7 +117,7 @@ if(!plot_only)
                 W = r4.Q*Matrix{Float64}(I(n)[:, 1:k])
 
                 data["rgks"][i, t]    = norm(M - (r1.Q)*(r1.X))
-                data["rid"][i, t]     = norm(M - (r2.Q)*(r2.X))
+                data["rcpqr"][i, t]     = norm(M - (r2.Q)*(r2.X))
                 data["levg"][i, t]    = norm(M - Q*X)
                 data["dgeqp3"][i, t]  = norm(M - W*(W'*M))
             end
@@ -127,7 +127,7 @@ if(!plot_only)
 
         fprintln("\ncalculating approximation error statistics...")
         
-        for alg in ["dgeqp3", "levg", "rid", "rgks"]
+        for alg in ["dgeqp3", "levg", "rcpqr", "rgks"]
             means[alg]  = vec(mean(data[alg], dims = 2))
             stds[alg]   = vec(std(data[alg], dims = 2))
 
@@ -183,7 +183,7 @@ opt_rel.set_xlabel(L"Approximation Rank ($k$)")
 opt_rel.set_ylabel("Frobenius Error Suboptimality")
 opt_rel.set_ylim([1., 5.])
 
-for alg in ["levg", "rid", "rgks"]
+for alg in ["levg", "rcpqr", "rgks"]
     norm_rel.plot(krange, means[alg]/testmat_norm, color = algcolors[alg], marker = algmarkers[alg], markevery = mfreq, markerfacecolor = "none", label = alglabels[alg])
     opt_rel.plot(krange, means[alg]./optimal, color = algcolors[alg], marker = algmarkers[alg], markevery = mfreq, markerfacecolor = "none")
 
