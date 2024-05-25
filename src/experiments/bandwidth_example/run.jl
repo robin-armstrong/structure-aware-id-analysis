@@ -27,7 +27,7 @@ krange       = 1:30           # range of approximation ranks to test
 k_plot       = 20
 numtrials    = 100              # trials per approximation rank
 
-plot_only = true
+plot_only = false
 
 ####################################################################
 ##################### DATA GENERATION ##############################
@@ -39,7 +39,7 @@ function fprintln(s)
 end
 
 if(!plot_only)
-    function run_kernel_example(destination, readme, rng, n, bw_min, bw_max, krange, numtrials, plot_only)
+    function run_bandwidth_example(destination, readme, rng, n, bw_min, bw_max, krange, numtrials, plot_only)
         logstr  = readme*"\n\n"
         logstr *= "rng       = "*string(rng)*"\n"
         logstr *= "n         = "*string(n)*"\n"
@@ -140,7 +140,7 @@ if(!plot_only)
         @save destination*"_data.jld2" krange numtrials testmat_svd data means stds quants
     end
 
-    run_kernel_example(destination, readme, rng, n, bw_min, bw_max, krange, numtrials, plot_only)
+    run_bandwidth_example(destination, readme, rng, n, bw_min, bw_max, krange, numtrials, plot_only)
 end
 
 ####################################################################
