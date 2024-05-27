@@ -75,7 +75,7 @@ if(!plot_only)
         stds_vscoher   = Dict()
         quants_vscoher = Dict()
         
-        for alg in ["levg", "rsvd_q0", "rgks"]
+        for alg in ["levg", "rsvd_q0", "rcpqr", "rgks"]
             data_vsrank[alg]   = zeros(length(krange), numtrials)
             means_vsrank[alg]  = zeros(length(krange))
             stds_vsrank[alg]   = zeros(length(krange))
@@ -121,13 +121,19 @@ if(!plot_only)
                 end
 
                 r1 = levg(rng, A, k, oversamp = ov, leverage_scores = lscores)
-                data_vsrank["levg"][i, t] = norm(A - r1.Q*r1.X)
+                U  = svd(r1.X).U
+                Q  = r1.Q*U[:, 1:k]
+                X  = Q'*A
+                data_vsrank["levg"][i, t] = norm(A - Q*X)
 
                 r2 = rsvd(rng, A, k, oversamp = ov)
                 data_vsrank["rsvd_q0"][i, t] = norm(A - r2.U*Diagonal(r2.S)*r2.Vt)
 
-                r3 = rgks(rng, A, k, oversamp = ov)
-                data_vsrank["rgks"][i, t] = norm(A - r3.Q*r3.X)
+		        r3 = rcpqr(rng, A, k, oversamp = ov)
+		        data_vsrank["rcpqr"][i, t] = norm(A - r3.Q*r3.X)
+
+                r4 = rgks(rng, A, k, oversamp = ov)
+                data_vsrank["rgks"][i, t] = norm(A - r4.Q*r4.X)
             end
 
             @save destination*"_data.jld2" krange cohers k_cross c_cross numtrials S data_vsrank means_vsrank stds_vsrank quants_vsrank data_vscoher means_vscoher stds_vscoher quants_vscoher
@@ -143,7 +149,7 @@ if(!plot_only)
         for i = 1:num_cohers
             c         = crange[i]
             svdobj    = svd(c*P + (1 - c)*H)
-		    Vt        = svdobj.U*svdobj.Vt
+	        Vt        = svdobj.U*svdobj.Vt
             A         = U*Diagonal(S)*Vt
             lscores   = [norm(Vt[1:k_cross, j])^2 for j = 1:n]
             lscores   = min.(lscores, 1.)
@@ -158,13 +164,19 @@ if(!plot_only)
                 end
 
                 r1 = levg(rng, A, k_cross, oversamp = ov, leverage_scores = lscores)
-                data_vscoher["levg"][i, t] = norm(A - r1.Q*r1.X)
+                W  = svd(r1.X).U
+                Q  = r1.Q*W[:, 1:k_cross]
+                X  = Q'*A
+                data_vscoher["levg"][i, t] = norm(A - Q*X)
 
                 r2 = rsvd(rng, A, k_cross, oversamp = ov)
                 data_vscoher["rsvd_q0"][i, t] = norm(A - r2.U*Diagonal(r2.S)*r2.Vt)
+		
+		        r3 = rcpqr(rng, A, k_cross, oversamp = ov)
+		        data_vscoher["rcpqr"][i, t] = norm(A - r3.Q*r3.X)
 
-                r3 = rgks(rng, A, k_cross, oversamp = ov)
-                data_vscoher["rgks"][i, t] = norm(A - r3.Q*r3.X)
+                r4 = rgks(rng, A, k_cross, oversamp = ov)
+                data_vscoher["rgks"][i, t] = norm(A - r4.Q*r4.X)
             end
 
             @save destination*"_data.jld2" krange cohers k_cross c_cross numtrials S data_vsrank means_vsrank stds_vsrank quants_vsrank data_vscoher means_vscoher stds_vscoher quants_vscoher
@@ -175,13 +187,13 @@ if(!plot_only)
         sp     = sortperm(cohers)
         cohers = cohers[sp]
         
-        for alg in ["levg", "rsvd_q0", "rgks"]
+        for alg in ["levg", "rsvd_q0", "rcpqr", "rgks"]
             data_vscoher[alg] = data_vscoher[alg][sp, :]
         end
 
         fprintln("calculating approximation error statistics...")
 
-        for alg in ["levg", "rsvd_q0", "rgks"]
+        for alg in ["levg", "rsvd_q0", "rcpqr", "rgks"]
             means_vsrank[alg]  = vec(mean(data_vsrank[alg], dims = 2))
             stds_vsrank[alg]   = vec(std(data_vsrank[alg], dims = 2))
 
@@ -240,7 +252,7 @@ vscoher.set_ylabel(L"Frobenius Suboptimality ($k = 100$)")
 vsrank_opt.set_yticks([1, 2])
 stablerank.set_yticks([1, 2, 3])
 
-for alg in ["levg", "rsvd_q0", "rgks"]
+for alg in ["levg", "rsvd_q0", "rcpqr", "rgks"]
     vsrank_rel.plot(krange, means_vsrank[alg]/matrixnorm, color = algcolors[alg], marker = algmarkers[alg], markevery = mfreq, markerfacecolor = "none", label = alglabels[alg])
     vsrank_opt.plot(krange, means_vsrank[alg]./optimal, color = algcolors[alg], marker = algmarkers[alg], markevery = mfreq, markerfacecolor = "none", label = alglabels[alg])
     vscoher.plot(cohers, means_vscoher[alg]/optimal_cross, color = algcolors[alg], marker = algmarkers[alg], markevery = mfreq, markerfacecolor = "none")
