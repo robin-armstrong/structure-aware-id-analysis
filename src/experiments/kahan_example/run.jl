@@ -24,7 +24,7 @@ n         = 100                     # dimension of Kahan blocks
 blocks    = 1                       # number of Kahan blocks
 alpha     = .9                      # parameterizes the Kahan blocks
 pert      = 1e3                     # controls a diagonal perturbation on the test matrix
-krange    = 1:2:100                 # range of approximation ranks to test
+krange    = 1:2:75                  # range of approximation ranks to test
 numtrials = 100                     # trials per approximation rank
 
 plot_only = false

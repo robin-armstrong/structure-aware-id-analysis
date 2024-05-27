@@ -3,7 +3,6 @@ using Distributions
 using StatsBase
 using Random
 using PyPlot
-import Plots
 using JLD2
 
 include("../../algorithms/rgks.jl")
@@ -28,7 +27,8 @@ noise        = 5                    # standard deviation of Gaussian mixture com
 bandwidth    = 2                    # bandwidth of Gaussian kernel
 normalize    = false
 krange       = 1:2:99               # range of approximation ranks to test
-k_anim       = 80
+k_plot       = 80
+k_draw       = 25
 numtrials    = 50                   # trials per approximation rank
 
 plot_only = false
@@ -215,50 +215,29 @@ end
 norm_rel.plot(krange, optimal/kernel_norm, color = "black", linestyle = "dashed", label = "Optimal")
 norm_rel.legend()
 
-savefig(destination*"_plot.pdf", bbox_inches = "tight")
+savefig(destination*"_error_plot.pdf", bbox_inches = "tight")
 close(fig)
 
-fprintln("creating point selection animation...\n")
-
-K      = kernel_svd.U*Diagonal(kernel_svd.S)*kernel_svd.Vt
-p_rcpqr  = rcpqr(K, k_anim, oversamp = ceil(Int64, .1*k_anim)).p
-p_rgks = rgks(K, k_anim, oversamp = ceil(Int64, .1*k_anim)).p
+K       = kernel_svd.U*Diagonal(kernel_svd.S)*kernel_svd.Vt
+p_cpqr  = qr(K, ColumnNorm()).p[1:k_draw]
+p_gks   = qr(kernel_svd.Vt[1:k_plot, :], ColumnNorm()).p[1:k_draw]
 
 colnorms = [norm(K[:, j]) for j = 1:size(K, 2)]
-l_scores = [norm(kernel_svd.Vt[1:k_anim, j]) for j = 1:size(K, 2)]
+l_scores = [norm(kernel_svd.Vt[1:k_plot, j]) for j = 1:size(K, 2)]
 
-rcpqr_cloud  = Plots.plot()
-rcpqr_cols   = Plots.plot()
-rgks_cloud = Plots.plot()
-rgks_cols  = Plots.plot()
+fig, (norm_levg, cloud) = subplots(1, 2, figsize = (8, 4))
 
-Plots.title!(rcpqr_cloud, "rcpqr")
-Plots.title!(rgks_cloud, "RGKS")
-Plots.xlabel!(rcpqr_cols, "Leverage Score")
-Plots.xlabel!(rgks_cols, "Leverage Score")
-Plots.xlims!(rgks_cloud, minimum(points[1, :]), maximum(points[1, :]))
-Plots.xlims!(rcpqr_cloud, minimum(points[1, :]), maximum(points[1, :]))
-Plots.xlims!(rcpqr_cols, 0., 1.1*maximum(l_scores))
-Plots.xlims!(rgks_cols, 0., 1.1*maximum(l_scores))
-Plots.ylabel!(rcpqr_cols, "Column Norm")
-Plots.ylabel!(rgks_cols, "Column Norm")
-Plots.ylims!(rgks_cloud, minimum(points[2, :]), maximum(points[2, :]))
-Plots.ylims!(rcpqr_cloud, minimum(points[2, :]), maximum(points[2, :]))
-Plots.ylims!(rcpqr_cols, 0., 1.1*maximum(colnorms))
-Plots.ylims!(rgks_cols, 0., 1.1*maximum(colnorms))
+norm_levg.set_xlabel(L"Leverage Score ($k = 80$)")
+norm_levg.set_ylabel("Column Norm")
 
-tiles = Plots.plot(rcpqr_cloud, rgks_cloud, rcpqr_cols, rgks_cols, layout = (2, 2), size = (1000, 1000))
-Plots.scatter!(tiles[1], points[1, :], points[2, :], markercolor = :gray, markersize = 4, markeralpha = .1, legend = false)
-Plots.scatter!(tiles[2], points[1, :], points[2, :], markercolor = :gray, markersize = 4, markeralpha = .1, legend = false)
-Plots.scatter!(tiles[3], l_scores, colnorms, markercolor = :gray, markersize = 4, markeralpha = .1, legend = false)
-Plots.scatter!(tiles[4], l_scores, colnorms, markercolor = :gray, markersize = 4, markeralpha = .1, legend = false)
+norm_levg.scatter(l_scores, colnorms, color = "black", alpha = .1)
+cloud.scatter(points[1, :], points[2, :], color = "black", alpha = .1)
 
-anim = Plots.@animate for j = 1:k_anim
-    fprintln("  frame "*string(j)*" of "*string(k_anim)*"...")
-    Plots.scatter!(tiles[1], [points[1, p_rcpqr[j]]], [points[2, p_rcpqr[j]]], markercolor = :lightgreen, markersize = 6, legend = false)
-    Plots.scatter!(tiles[2], [points[1, p_rgks[j]]], [points[2, p_rgks[j]]], markercolor = :red, markersize = 6, legend = false)
-    Plots.scatter!(tiles[3], [l_scores[p_rcpqr[j]]], [colnorms[p_rcpqr[j]]], markercolor = :lightgreen, markersize = 6, legend = false)
-    Plots.scatter!(tiles[4], [l_scores[p_rgks[j]]], [colnorms[p_rgks[j]]], markercolor = :red, markersize = 6, legend = false)
-end
+norm_levg.scatter(l_scores[p_cpqr], colnorms[p_cpqr], color = "limegreen", marker = "s", label = "CPQR")
+norm_levg.scatter(l_scores[p_gks], colnorms[p_gks], color = "fuchsia", marker = "D", label = "GKS")
+cloud.scatter(points[1, p_cpqr], points[2, p_cpqr], color = "limegreen", marker = "s", label = "CPQR")
+cloud.scatter(points[1, p_gks], points[2, p_gks], color = "fuchsia", marker = "D", label = "CPQR")
+norm_levg.legend()
 
-Plots.gif(anim, destination*"_animation.gif", fps = 3)
+savefig(destination*"_scatter_plot.pdf", bbox_inches = "tight")
+close(fig)
