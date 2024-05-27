@@ -24,7 +24,7 @@ n            = 800
 bw_min       = 1.
 bw_max       = 600.
 krange       = 1:30           # range of approximation ranks to test
-k_plot       = 20
+k_plot       = 5
 numtrials    = 100              # trials per approximation rank
 
 plot_only = false
@@ -85,6 +85,9 @@ if(!plot_only)
             quants[alg] = zeros(length(krange), 2)
         end
 
+        rcpqr_hits = zeros(n)
+        rgks_hits  = zeros(n)
+
         fprintln("running tests...\n")
 
         trialcounter = 0
@@ -107,6 +110,11 @@ if(!plot_only)
                 r3 = levg(rng, M, k, oversamp = ceil(Int64, .1*k), leverage_scores = lscores)
                 r4 = qr(M, ColumnNorm())
 
+                if(k == k_plot)
+                    rgks_hits[r1.p]  .+= 1
+                    rcpqr_hits[r2.p] .+= 1
+                end
+
                 # optimally reducing the levg approximation to rank k
 
                 U = svd(r3.X).U
@@ -122,7 +130,7 @@ if(!plot_only)
                 data["dgeqp3"][i, t]  = norm(M - W*(W'*M))
             end
 
-            @save destination*"_data.jld2" krange numtrials testmat_svd data means stds quants
+            @save destination*"_data.jld2" krange numtrials testmat_svd data means stds quants rgks_hits rcpqr_hits
         end
 
         fprintln("\ncalculating approximation error statistics...")
@@ -137,7 +145,7 @@ if(!plot_only)
             end
         end
 
-        @save destination*"_data.jld2" krange numtrials testmat_svd data means stds quants
+        @save destination*"_data.jld2" krange numtrials testmat_svd data means stds quants rgks_hits rcpqr_hits
     end
 
     run_bandwidth_example(destination, readme, rng, n, bw_min, bw_max, krange, numtrials, plot_only)
@@ -147,7 +155,7 @@ end
 ##################### PLOTTING #####################################
 ####################################################################
 
-@load destination*"_data.jld2" krange numtrials testmat_svd data means stds quants
+@load destination*"_data.jld2" krange numtrials testmat_svd data means stds quants rgks_hits rcpqr_hits
 
 fprintln("plotting error statistics...")
 
@@ -155,7 +163,7 @@ testmat_norm = norm(testmat_svd.S)
 optimal      = [norm(testmat_svd.S[(k + 1):end]) for k in krange]
 
 ioff()
-fig, (levg_colnorm, norm_rel, heatmap, opt_rel) = subplots(2, 2, figsize = (10, 10))
+fig, (levg_colnorm, norm_rel, heatmap, hits) = subplots(2, 2, figsize = (10, 10))
 
 mfreq      = 5
 errbar     = "confidence"   # either "confidence" or "quantile"
@@ -173,26 +181,27 @@ colnorms = [norm(M[:, j]) for j = 1:n]
 
 levg_colnorm.set_xlabel(L"Leverage Score ($k = 20$)")
 levg_colnorm.set_ylabel("Column Norm")
-levg_colnorm.scatter(lscores, colnorms)
+levg_colnorm.scatter(lscores, colnorms, color = "black")
 
 norm_rel.set_xlabel(L"Approximation Rank ($k$)")
 norm_rel.set_ylabel("Relative Frobenius Error")
 norm_rel.set_yscale("log")
 
-opt_rel.set_xlabel(L"Approximation Rank ($k$)")
-opt_rel.set_ylabel("Frobenius Error Suboptimality")
-opt_rel.set_ylim([1., 5.])
+hits.set_xlabel("Column Index (Sorted by Leverage Score)")
+hits.set_ylabel(L"Selection Frequency ($k = 5$)")
+
+sp = sortperm(lscores, rev = true)
+hits.plot(1:n, rcpqr_hits[sp]/numtrials, color = algcolors["rcpqr"], marker = algmarkers["rcpqr"], markevery = 80, markerfacecolor = "none", label = alglabels["rcpqr"])
+hits.plot(1:n, rgks_hits[sp]/numtrials, color = algcolors["rgks"], marker = algmarkers["rgks"], markevery = 80, markerfacecolor = "none", label = alglabels["rgks"])
+hits.legend()
 
 for alg in ["levg", "rcpqr", "rgks"]
     norm_rel.plot(krange, means[alg]/testmat_norm, color = algcolors[alg], marker = algmarkers[alg], markevery = mfreq, markerfacecolor = "none", label = alglabels[alg])
-    opt_rel.plot(krange, means[alg]./optimal, color = algcolors[alg], marker = algmarkers[alg], markevery = mfreq, markerfacecolor = "none")
 
     if(errbar == "quantile")
         norm_rel.fill_between(krange, quants[alg][:, 1]/testmat_norm, quants[alg][:, 2]/testmat_norm, color = algcolors[alg], alpha = .2)
-        opt_rel.fill_between(krange, quants[alg][:, 1]./optimal, quants[alg][:, 2]./optimal, color = algcolors[alg], alpha = .2)
     elseif(errbar == "confidence")
         norm_rel.fill_between(krange, (means[alg] .+ alpha*stds[alg]/sqrt(numtrials))/testmat_norm, (means[alg] .- alpha*stds[alg]/sqrt(numtrials))/testmat_norm, color = algcolors[alg], alpha = .2)
-        opt_rel.fill_between(krange, (means[alg] .+ alpha*stds[alg]/sqrt(numtrials))./optimal, (means[alg] .- alpha*stds[alg]/sqrt(numtrials))./optimal, color = algcolors[alg], alpha = .2)
     else
         throw(ArgumentError("unrecognized error bar type, '"*errbar*"'"))
     end

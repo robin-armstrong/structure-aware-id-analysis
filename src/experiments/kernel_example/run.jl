@@ -219,8 +219,8 @@ savefig(destination*"_error_plot.pdf", bbox_inches = "tight")
 close(fig)
 
 K       = kernel_svd.U*Diagonal(kernel_svd.S)*kernel_svd.Vt
-p_cpqr  = qr(K, ColumnNorm()).p[1:k_draw]
-p_gks   = qr(kernel_svd.Vt[1:k_plot, :], ColumnNorm()).p[1:k_draw]
+p_cpqr  = rcpqr(rng, K, k_plot, oversamp = ceil(Int64, .1*k_plot)).p[1:k_draw]
+p_gks   = rgks(rng, K, k_plot, oversamp = ceil(Int64, .1*k_plot)).p[1:k_draw]
 
 colnorms = [norm(K[:, j]) for j = 1:size(K, 2)]
 l_scores = [norm(kernel_svd.Vt[1:k_plot, j]) for j = 1:size(K, 2)]
@@ -233,10 +233,10 @@ norm_levg.set_ylabel("Column Norm")
 norm_levg.scatter(l_scores, colnorms, color = "black", alpha = .1)
 cloud.scatter(points[1, :], points[2, :], color = "black", alpha = .1)
 
-norm_levg.scatter(l_scores[p_cpqr], colnorms[p_cpqr], color = "limegreen", marker = "s", label = "CPQR")
-norm_levg.scatter(l_scores[p_gks], colnorms[p_gks], color = "fuchsia", marker = "D", label = "GKS")
-cloud.scatter(points[1, p_cpqr], points[2, p_cpqr], color = "limegreen", marker = "s", label = "CPQR")
-cloud.scatter(points[1, p_gks], points[2, p_gks], color = "fuchsia", marker = "D", label = "CPQR")
+norm_levg.scatter(l_scores[p_cpqr], colnorms[p_cpqr], color = "limegreen", marker = "s", label = "RCPQR")
+norm_levg.scatter(l_scores[p_gks], colnorms[p_gks], color = "fuchsia", marker = "D", label = "RGKS")
+cloud.scatter(points[1, p_cpqr], points[2, p_cpqr], color = "limegreen", marker = "s", label = "RCPQR")
+cloud.scatter(points[1, p_gks], points[2, p_gks], color = "fuchsia", marker = "D", label = "RCPQR")
 norm_levg.legend()
 
 savefig(destination*"_scatter_plot.pdf", bbox_inches = "tight")
