@@ -12,7 +12,7 @@ include("../../utilities/create_matrix.jl")
 ##################### SCRIPT PARAMETERS ############################
 ####################################################################
 
-destination = "src/experiments/error_bounds/test"
+destination = "src/experiments/error_bounds/errorbounds"
 readme      = "Trying to get the stupid script to work."
 
 rng         = MersenneTwister(1)
@@ -190,35 +190,35 @@ mfreq = 5
 
 spec_rank.set_yscale("log")
 spec_rank.plot(krange, data_vsrank["spec_err"]./spec_optimal, color = "black", label = "GKS")
-spec_rank.plot(krange, data_vsrank["spec_bound"]./spec_optimal, color = "brown", marker = "D", markerfacecolor = "none", markevery = mfreq, label = "Thm 6.1")
+spec_rank.plot(krange, data_vsrank["spec_bound"]./spec_optimal, color = "brown", marker = "D", markerfacecolor = "none", markevery = mfreq, label = "Thm 5.1")
 spec_rank.plot(krange, gamma, color = "black", linestyle = "dotted", label = L"\sigma_{k + 1}/\sigma_k")
 spec_rank.legend()
 
 frob_rank.set_yscale("log")
 frob_rank.plot(krange, data_vsrank["frob_err"]./frob_optimal, color = "black", label = "GKS")
-frob_rank.plot(krange, data_vsrank["frob_bound"]./frob_optimal, color = "brown", marker = "D", markerfacecolor = "none", markevery = mfreq, label = "Thm 6.3")
+frob_rank.plot(krange, data_vsrank["frob_bound"]./frob_optimal, color = "brown", marker = "D", markerfacecolor = "none", markevery = mfreq, label = "Thm 5.3")
 frob_rank.plot(krange, gamma, color = "black", linestyle = "dotted", label = L"\sigma_{k + 1}/\sigma_k")
 frob_rank.legend()
 
 cond_rank.set_yscale("log")
 cond_rank.plot(krange, data_vsrank["spec_err"]./spec_optimal, color = "black", label = "GKS")
-cond_rank.plot(krange, data_vsrank["cond_bound"]./spec_optimal, color = "brown", marker = "D", markerfacecolor = "none", markevery = mfreq, label = "Thm 6.4")
+cond_rank.plot(krange, data_vsrank["cond_bound"]./spec_optimal, color = "brown", marker = "D", markerfacecolor = "none", markevery = mfreq, label = "Thm 5.4")
 cond_rank.plot(krange, gamma, color = "black", linestyle = "dotted", label = L"\sigma_{k + 1}/\sigma_k")
 cond_rank.legend()
 
 spec_coher.set_yscale("log")
 spec_coher.plot(cohers, data_vscoher["spec_err"]/S[k_cross + 1], color = "black", label = "GKS")
-spec_coher.plot(cohers, data_vscoher["spec_bound"]/S[k_cross + 1], color = "brown", marker = "D", markerfacecolor = "none", markevery = mfreq, label = "Thm 6.1")
+spec_coher.plot(cohers, data_vscoher["spec_bound"]/S[k_cross + 1], color = "brown", marker = "D", markerfacecolor = "none", markevery = mfreq, label = "Thm 5.1")
 spec_coher.legend()
 
 frob_coher.set_yscale("log")
 frob_coher.plot(cohers, data_vscoher["frob_err"]/norm(S[(k_cross + 1):end]), color = "black", label = "GKS")
-frob_coher.plot(cohers, data_vscoher["frob_bound"]/norm(S[(k_cross + 1):end]), color = "brown", marker = "D", markerfacecolor = "none", markevery = mfreq, label = "Thm 6.3")
+frob_coher.plot(cohers, data_vscoher["frob_bound"]/norm(S[(k_cross + 1):end]), color = "brown", marker = "D", markerfacecolor = "none", markevery = mfreq, label = "Thm 5.3")
 frob_coher.legend()
 
 cond_coher.set_yscale("log")
 cond_coher.plot(cohers, data_vscoher["spec_err"]/S[k_cross + 1], color = "black", label = "GKS")
-cond_coher.plot(cohers, data_vscoher["cond_bound"]/S[k_cross + 1], color = "brown", marker = "D", markerfacecolor = "none", markevery = mfreq, label = "Thm 6.4")
+cond_coher.plot(cohers, data_vscoher["cond_bound"]/S[k_cross + 1], color = "brown", marker = "D", markerfacecolor = "none", markevery = mfreq, label = "Thm 5.4")
 cond_coher.legend()
 
 savefig(destination*"_plot.pdf", bbox_inches = "tight")

@@ -161,7 +161,7 @@ err   = [err1, err2]
 coher = [coher1, coher2]
 
 mfreq = 20
-errbar     = "confidence"   # either "confidence" or "quantile"
+errbar     = "quantile"   # either "confidence" or "quantile"
 confidence = .95
 
 alpha = quantile(Normal(0, 1), 1 - .5*(1 - confidence))
@@ -191,7 +191,7 @@ for matrix_id = 1:2
             err[matrix_id].fill_between(krange, bar1, bar2, color = algcolors[alg], alpha = .2)
         
         elseif(errbar == "quantile")
-            err[matrix_id].fill_between(krange, quants[alg][matrix_id, :, 1]/matrix_norm[matrix_id], quants[alg][matrix_id, :, 2], color = algcolors[alg], alpha = .2)
+            err[matrix_id].fill_between(krange, quants[alg][matrix_id, :, 1]/matrix_norm[matrix_id], quants[alg][matrix_id, :, 2]/matrix_norm[matrix_id], color = algcolors[alg], alpha = .2)
         else
             throw(ArgumentError("unrecognized error bar type, '"*errbar*"'"))
         end

@@ -138,7 +138,7 @@ confidence = .95
 alpha = quantile(Normal(0, 1), 1 - .5*(1 - confidence))
 
 ioff()
-fig, (angles, errors) = subplots(1, 2, figsize = (8, 4))
+fig, (angles, errors) = subplots(1, 2, figsize = (8.5, 4.3))
 angles.set_xlabel(L"Approximation Rank ($k$)")
 angles.axhline(.5*pi, color = "black", linestyle = "dashed", label = L"\pi / 2")
 angles.set_ylim([1.45, 1.01*pi/2])
@@ -166,7 +166,6 @@ elseif(errbar = "confidence")
 else
     throw(ArgumentError("unrecognized error bar type, '"*errbar*"'"))
 end
-
 
 savefig(destination*"_plot.pdf")
 close(fig)
