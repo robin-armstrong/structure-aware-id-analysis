@@ -16,14 +16,14 @@ destination = "src/experiments/error_bounds/errorbounds"
 readme      = "Trying to get the stupid script to work."
 
 rng         = MersenneTwister(1)
-n           = 480
-decay_start = 50
-decay_end   = 180
+n           = 512
+decay_start = 20
+decay_end   = 80
 sigma_start = 10.
 sigma_end   = .001
-krange      = 1:5:200
+krange      = 1:1:100
 num_cohers  = 50
-k_cross     = 125
+k_cross     = 45
 c_cross     = .2
 
 plot_only = false
@@ -183,10 +183,10 @@ for plot in [spec_rank, frob_rank, cond_rank]
 end
 
 for plot in [spec_coher, frob_coher, cond_coher]
-    plot.set_xlabel(L"Coherence ($c_{125}$)")
+    plot.set_xlabel(L"Coherence ($c_{45}$)")
 end
 
-mfreq = 5
+mfreq = 10
 
 spec_rank.set_yscale("log")
 spec_rank.plot(krange, data_vsrank["spec_err"]./spec_optimal, color = "black", label = "GKS")
