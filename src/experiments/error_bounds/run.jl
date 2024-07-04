@@ -12,6 +12,19 @@ include("../../utilities/create_matrix.jl")
 ##################### SCRIPT PARAMETERS ############################
 ####################################################################
 
+# DEFAULT PARAMETER SETTINGS:
+#
+# rng         = MersenneTwister(1)
+# n           = 512
+# decay_start = 20
+# decay_end   = 80
+# sigma_start = 10.
+# sigma_end   = .001
+# krange      = 1:1:100
+# num_cohers  = 50
+# k_cross     = 45
+# c_cross     = .2
+
 destination = "src/experiments/error_bounds/errorbounds"
 readme      = "Trying to get the stupid script to work."
 

@@ -13,7 +13,7 @@ where `JULIA` is the path to a Julia executable. Once in a Julia terminal, enter
 import Pkg; Pkg.activate(".")
 Pkg.instantiate()
 ```
-You will need to run `import Pkg; Pkg.activate(".")` every time you open Julia to run this code, but `Pkg.instantiate()` only needs to be run once.
+You will need to run `import Pkg; Pkg.activate(".")` every time you open Julia to work with this code, but `Pkg.instantiate()` only needs to be run once.
 
 ## Running Experiments
 Experiments are located within the `src/experiments` directory, and are intented to be run from the top level. Thus, to run a particular experiment, enter
