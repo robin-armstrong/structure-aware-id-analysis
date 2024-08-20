@@ -18,11 +18,11 @@ You will need to run `import Pkg; Pkg.activate(".")` every time you open Julia t
 ## Running Experiments
 Experiments are located within the `src/experiments` directory, and are intented to be run from the top level. Thus, to run a particular experiment, enter
 ```
-include("src/experiments/<experiment-name>/run.jl")
+include("src/experiments/<experiment-subdir>/run.jl")
 ```
 in Julia, or enter
 ```
-julia --project=. src/experiments/<experiment-name>/run.jl
+julia --project=. src/experiments/<experiment-subdir>/run.jl
 ```
 from a shell at the top level.
 
@@ -35,4 +35,4 @@ where `name` is an identifier for the particular instance of the experiment bein
 2. `<name>_data.jld2`, the data being plotted.
 3. `<name>_log.txt`, a file recording the parameter values used for this run of the experiment.
 
-If you want to quickly run a plot without regenerating all the data (e.g., to change the scaling on an axix), then find the `plot_only` variable near the top of `run.jl` and set it to `true`. This will cause `run.jl` to look for a `*_data.jld2` file at the location specified by `destination`, and it will simply plot the contents of this file.
+If you want to quickly run a plot without regenerating all the data (e.g., to change the scaling on an axis), then find the `plot_only` variable near the top of `run.jl` and set it to `true`. This will cause `run.jl` to look for a `*_data.jld2` file at the location specified by `destination`, and it will simply plot the contents of this file.
