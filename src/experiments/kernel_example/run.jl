@@ -247,10 +247,10 @@ norm_levg.set_ylabel("Column Norm")
 norm_levg.scatter(l_scores, colnorms, color = "black", alpha = .1)
 cloud.scatter(points[1, :], points[2, :], color = "black", alpha = .1)
 
-norm_levg.scatter(l_scores[p_cpqr], colnorms[p_cpqr], color = "limegreen", marker = "s", label = "RCPQR")
+norm_levg.scatter(l_scores[p_cpqr], colnorms[p_cpqr], color = "limegreen", marker = "s", label = "GRID")
 norm_levg.scatter(l_scores[p_gks], colnorms[p_gks], color = "fuchsia", marker = "D", label = "RGKS")
-cloud.scatter(points[1, p_cpqr], points[2, p_cpqr], color = "limegreen", marker = "s", label = "RCPQR")
-cloud.scatter(points[1, p_gks], points[2, p_gks], color = "fuchsia", marker = "D", label = "RCPQR")
+cloud.scatter(points[1, p_cpqr], points[2, p_cpqr], color = "limegreen", marker = "s", label = "GRID")
+cloud.scatter(points[1, p_gks], points[2, p_gks], color = "fuchsia", marker = "D", label = "RGKS")
 norm_levg.legend()
 
 savefig(destination*"_scatter_plot.pdf", bbox_inches = "tight")
